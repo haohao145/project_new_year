@@ -1,0 +1,21 @@
+{
+  "name": "node_project",
+  "version": "1.0.0",
+  "description": "这node服务端是用来配合前台的测试项目搭建的接口的",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "李浩",
+  "license": "ISC",
+  "dependencies": {
+    "date-format": "^2.0.0",
+    "express": "^4.17.1",
+    "express-session": "^1.16.1",
+    "express-ws": "^4.0.0",
+    "formidable": "^1.2.1",
+    "mongoose": "^5.5.2",
+    "node-xlsx": "^0.14.1",
+    "socket.io": "^2.3.0"
+  }
+}

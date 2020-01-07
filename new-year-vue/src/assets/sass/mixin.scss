@@ -1,0 +1,31 @@
+// 存放混入样式  
+
+//圆角
+@mixin border-radius($radius) {
+    border-radius: $radius;
+    -ms-border-radius: $radius;
+    -moz-border-radius: $radius;
+    -webkit-border-radius: $radius;
+}
+
+//编剧包含在内
+@mixin box-sizing() {
+	box-sizing: border-box;
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	-ms-box-sizing:border-box;
+}
+
+// 从上到下渐变
+@mixin linearTopBottom($a,$b){
+	background: -webkit-linear-gradient($a, $b); /* Safari 5.1 - 6.0 */
+	background: -o-linear-gradient($a, $b); /* Opera 11.1 - 12.0 */ 
+	background: -moz-linear-gradient($a, $b); /* Firefox 3.6 - 15 */ 
+	background: linear-gradient($a, $b); /* 标准的语法 */
+
+}
+
+// 使用示例
+.box {
+    @include border-radius(10px);
+}

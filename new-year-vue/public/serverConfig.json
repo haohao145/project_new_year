@@ -1,0 +1,6 @@
+{
+    "development": "/proxyApi",
+    "ws": "ws://10.0.111.18:3000/websocket/",
+    "production": "http://117.158.214.130:8000/",
+    "imgpath": "http://10.0.111.18:3000/"
+}

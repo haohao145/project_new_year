@@ -1,0 +1,76 @@
+@import "normalize"; //修改css 中的一些小的 默认样式问题 api: https://github.com/necolas/normalize.css/
+@import "variable"; // 主题色彩变量
+@import "mixin"; //混入  存放一些  设置重复项的方法
+@import "zdy"; //重写 的  样式
+
+
+// 注释
+html,
+body {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    // background: #303133;
+}
+
+body {
+    font-family: "Helvetica Neue", Helvetica, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "微软雅黑", Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.15;
+    color: #303133;
+    // background-color: rgb(255, 255, 255);
+}
+
+a {
+    // color: mix(#fff, $--color-primary, 20%);
+    text-decoration: none;
+
+    &:focus,
+    &:hover {
+        // color: $--color-primary;
+        text-decoration: underline;
+    }
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+    margin: 0;
+}
+
+img {
+    vertical-align: middle;
+}
+
+#app {
+    height: 100%;
+}
+
+.zdy-w {
+    width: 100%;
+    height: 100%;
+}
+
+.bg {
+    background: url("~@/assets/img/systemImg/icon-wall.jpg") no-repeat center/100% 100%;
+}
+
+.zz {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .4);
+    z-index: 9999;
+    text-align: center;
+}
+
+.zz p {
+    color: #fff;
+    font-size: 24px;
+    line-height: 200px;
+}
