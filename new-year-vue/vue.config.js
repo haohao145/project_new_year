@@ -67,21 +67,21 @@ module.exports = {
     // webpack-dev-server 相关配置
     devServer: {
         open: true,
-        host: '10.0.111.18',
+        host: '192.168.8.105',
         port: 8090,
         https: false,
         hotOnly: false,
         // http 代理配置
         proxy: {
             '/proxyApi': {
-                target: 'http://10.0.111.18:3000/',
+                target: 'http://192.168.8.105:3000/',
                 changeOrigin: true,
                 pathRewrite: {
                     '^/proxyApi': ''
                 }
             }
         },
-        before: (app) => {}
+        before: (app) => { }
     },
     // 第三方插件配置
     pluginOptions: {

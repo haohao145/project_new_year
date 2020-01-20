@@ -51,13 +51,37 @@ peopleSchema.statics.checkPrize = function (json, callback) {
 }
 
 
-//静态方法，查询所有用户
+//静态方法，查询所有中奖者
 peopleSchema.statics.checkPrizeAll = function (callback) {
     this.find({}, function (err, results) {
         //返回结果  数据库中有这个信息 返回false  没有  可以添加  返回 true
         callback(results)
     })
 }
+
+
+//删除所有中奖信息
+peopleSchema.statics.deleteAll = function (callback) {
+    mongoose.connection.collection("prizes").drop(function (err) {
+        if (err) {
+            //删除失败   的时候  ；查询数据库是不是空的
+            Prize.checkPrizeAll(function (result) {
+                if (result.length == 0) {
+                    callback(200)
+                } else {
+                    console.log("删除中奖信息失败")
+                    callback(-1)
+                    return;
+                }
+            })
+
+        } else {
+            callback(200)
+        }
+
+    })
+}
+
 
 //创建一个类,集合名字自动首字母小写后面加s
 var Prize = mongoose.model("prize", peopleSchema);

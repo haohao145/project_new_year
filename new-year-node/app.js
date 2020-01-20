@@ -18,7 +18,8 @@ var app = expressWs.app;
 //自定义模块
 const mianctrl = require("./controllers/mainCtrl.js");
 
-//获得所有访问接口
+
+//websoket获得所有访问接口
 var wss = expressWs.getWss()
 
 //连接数据库
@@ -31,6 +32,12 @@ mongoose.connect('mongodb://localhost:27017/newyear', {
 	}
 	console.log("数据库连接成功")
 });
+
+
+
+
+
+
 
 //外部调用 websocket
 // var aWss = expressWs.getWss('/websocket');
@@ -47,9 +54,26 @@ app.ws('/websocket', function (ws, req) {
 		wss.clients.forEach(function (client) {
 			client.send(msg);
 		});
-		console.log(msg)
+		// console.log(msg)
 	})
 
+})
+
+
+//获取用户信息
+app.post('/wxinterface', function (req, res, next) {
+	// let myUrl = req.body.url;
+	let myCode = req.body.code;
+	wxInterface.prototype.getUserInfo(myCode, function (data) {
+		if (data) {
+			res.json(data);
+		} else {
+			res.json({
+				"ResultCode": 0,
+				"Message": "token获取失败"
+			});
+		}
+	});
 })
 
 
@@ -63,12 +87,20 @@ app.post('/user', mianctrl.userCheck);
 //查询所有用户
 app.post('/userfind', mianctrl.userFind);
 
+//查询现场的用户
+app.post('/userfindscene', mianctrl.userFindScene);
+
 //提交中奖信息
 app.post('/upprize', mianctrl.upPrizeData);
 
 //拉取中奖信息
 app.post('/priezdata', mianctrl.prizeData);
 
+//清空所有数据
+app.get('/delete', mianctrl.delete)
+
+//查询 h5 本地储存的键名
+app.get('/checkkey', mianctrl.checkKey)
 
 // 里面的文件将自动拥有路由 
 app.use(express.static("static"));

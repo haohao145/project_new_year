@@ -1,8 +1,5 @@
 <template>
   <div class="home">
-    <!-- <img alt="Vue logo" src="../assets/logo.png" />
-    <div>{{data}}</div>
-    <HelloWorld msg="Welcome to Your Vue.js App" />-->
     <!-- <h1>这里是首页</h1> -->
     <router-link class="homebat" to="/prize">抽奖</router-link>
     <br />
@@ -18,6 +15,7 @@
     <br />
     <router-link class="homebat" to="/prizeControl">控制器</router-link>
     <br />
+    <div class="imgload" v-show="imgLoadShow">{{imgLoadNum}}</div>
     <router-view />
   </div>
 </template>
@@ -25,43 +23,117 @@
 <script>
 // @ is an alias to /src
 import HelloWorld from "@/components/HelloWorld.vue";
-
+//获取 ws 的请求地址
+import serverConfig from "../../public/serverConfig.json";
 export default {
   name: "home",
   data() {
     return {
-      data: ""
+      data: "",
+      numm: 0, //计数器 表示资源加载完成
+      imgLoadNum: "",
+      imgLoadShow: false
     };
   },
   components: {
     HelloWorld
   },
+  computed: {
+    userData: {
+      //获取
+      get: function() {
+        return this.$store.state.user.count;
+      },
+      //修改
+      set: function(newValue) {
+        this.$store.state.user.count = newValue;
+      }
+    }
+  },
   created() {
-    this.axiosNav();
     //  vuex  请求 所有用户数据
-    this.$store.dispatch("checkUser");
+    this.$store.dispatch("userFindScene");
     console.log(process.env.NODE_ENV);
+
+    function show() {
+      alert("body is loaded");
+    }
+    window.οnlοad = show;
+  },
+  mounted() {
   },
   methods: {
-    //async await 异步处理 https://blog.csdn.net/zhaoxiang66/article/details/81017373  请求路由表
-    async axiosNav() {
-      //备份this
+    imgLoad(callback) {
       let _this = this;
-      //   console.log(process.env.NODE_ENV);
-      // console.log(this.$api);
-      // 这里用try catch包裹，请求失败的时候就执行catch里的  try执行错误的时候 就走下面的
-      try {
-        //定义传参内容
-        // let params  = {
-        // }
-        //await 是和 async  结合
-        // let res = await this.$api.Interface.axiosNav();
-        // _this.data = res;
-        // console.log("​getMatches -> res", res);
-      } catch (err) {
-        //TODO handle the exception
-        console.log(err);
-      }
+      //读取资源
+      let R = {};
+      //开始预加载
+      this.userData.forEach((item, index) => {
+        //设置键名
+        let img_id = item.id.replace(/-/g, "")
+        R[img_id] = new Image();
+
+        //加上 src属性
+        R[img_id].src = serverConfig.imgpath + item.imgpath;
+        R[img_id].onerror = function() {
+          console.log("加载失败");
+        };
+        //判断是否已经有这个缓存了  有了就不往下执行了
+        if (R[item.id.replace(/-/g, "")].complete) {
+          //这张图片已经缓存到浏览器了
+          console.log("缓存到浏览器");
+          this.numm++; //进度++
+          this.imgLoadShow = true; //显示进度框
+          this.imgLoadNum = this.numm + "/" + this.userData.length;
+          //完成时候
+          if (this.numm == this.userData.length) {
+            console.log("跳转");
+            callback();
+          }
+          // 直接返回，不用再处理onload事件
+          return;
+        }
+        
+        //判断当前这张照片是否加载完成
+        R[ img_id].addEventListener('load', function () { // 这里没有考虑error，实际上要考虑
+          console.log(img_id+"缓存到浏览器");
+          _this.numm++; //进度++
+          _this.imgLoadShow = true; //显示进度框
+          _this.imgLoadNum = _this.numm + "/" + _this.userData.length;
+          //完成时候
+          if (_this.numm == _this.userData.length) {
+            console.log("跳转");
+            callback();
+          }
+          // 直接返回，不用再处理onload事件
+          return;
+        }, false);
+        // // 当前这张加载完成;
+        // R[img_id].οnlοad = function() {
+        //   console.log("进来一次");
+        //   _this.numm++;
+        //   // 检测到所有都加载完成
+        //   if (_this.numm == _this.userData.length) {
+        //     callback();
+        //   }
+        // };
+        //设置 src
+        R[img_id].src = serverConfig.imgpath + item.imgpath;
+      });
+    }
+  },
+  beforeRouteLeave(to, from, next) {
+    let _this = this;
+    if(_this.userData.length == 0){
+      _this.$message.error("数据库中好像一个人都没有,快点扫二维码抢沙发吧！！！");
+    }
+    if (to.path == "/prize") {
+      console.log(1);
+      _this.imgLoad(function() {
+        next();
+      });
+    }else{
+      next();
     }
   }
 };
@@ -90,5 +162,21 @@ export default {
 }
 .homebat:hover {
   text-decoration: none;
+}
+.imgload {
+  width: 300px;
+  height: 100px;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  background: rgba(7, 71, 253, 0.5);
+  color: #fff;
+  line-height: 100px;
+  font-size: 30px;
+  text-align: center;
+
 }
 </style>

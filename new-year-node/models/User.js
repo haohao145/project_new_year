@@ -61,6 +61,18 @@ peopleSchema.statics.checkUserAll = function (callback) {
 	})
 }
 
+
+//查询在现场的所有用户
+peopleSchema.statics.checkUserScene = function (callback) {
+	this.find({
+		isScene: '1'
+	}, function (err, results) {
+		//返回结果  数据库中有这个信息 返回false  没有  可以添加  返回 true
+		callback(results)
+	})
+}
+
+
 //静态方法，查询所有用户
 peopleSchema.statics.userFind = function (id, callback) {
 	this.find({
@@ -68,6 +80,19 @@ peopleSchema.statics.userFind = function (id, callback) {
 	}, function (err, results) {
 		//返回结果  数据库中有这个信息 返回false  没有  可以添加  返回 true
 		callback(results)
+	})
+}
+
+
+//删除所有用户信息
+peopleSchema.statics.deleteAll = function (callback) {
+	mongoose.connection.collection("users").drop(function (err) {
+		if (err) {
+			console.log("失败")
+			callback(-1)
+			return;
+		}
+		callback(200)
 	})
 }
 

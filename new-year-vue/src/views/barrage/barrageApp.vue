@@ -1,5 +1,5 @@
 <template>
-  <div class="aaa barrage-bgapp barrages-drop dmbgapp" style="width: 100%;height: 100%;">
+  <div class="aaa app barrage-bgapp barrages-drop dmbgapp" style="width: 100%;height: 100%;">
     <div class="zz" v-if="zz == 1">
       <p>请使用微信扫码参与抽奖</p>
     </div>
@@ -20,7 +20,7 @@
     <div class="fsdmapp">
       <el-row :gutter="0">
         <el-col :span="20">
-          <el-input v-model="text" placeholder="请输入内容"></el-input>
+          <el-input v-model="text" placeholder="请输入内容" clearable></el-input>
         </el-col>
         <el-col :span="4">
           <a @click="barrageAdd()" class="el-icon-position zdyfj"></a>
@@ -39,9 +39,13 @@
 //引入弹幕插件
 import { MESSAGE_TYPE } from "vue-baberrage";
 let renwu = require("../../assets/img/peopleImg/renwu.jpg");
+let txx = require("../../assets/img/systemImg/gstx.jpg");
 import { userApi } from "@/api/apiList";
 //获取 ws 的请求地址
 import serverConfig from "../../../public/serverConfig.json";
+//随机的话
+import textArrNew from "./barrageArr";
+import utils from "../../utils/utils";
 export default {
   // name: "prize",
   data() {
@@ -108,35 +112,60 @@ export default {
       _this.zz = 1;
     }
 
-    let userH5Id = window.localStorage.getItem("id");
-    let shuju = {
-      id: userH5Id
-    };
-    this.idd = shuju.id;
-    console.log(shuju);
-    if (!userH5Id) {
-      this.$message.error("请先录入个人信息");
-      this.$router.push("/useradd");
-    }
-    userApi.axiosuserfind(shuju).then(res => {
-      // console.log(res)
-      if (res.code == 200) {
-        // console.log(userH5Id);
-        // console.log(res.data);
-        _this.res = res;
-        _this.userData = res.data;
-        console.log(res.data);
-        // this.$message.success("信息提交成功");
-      } else {
-        // this.$message.error("信息提交失败");
+
+    //查询键名
+    userApi.checkKey().then((data)=>{
+      // console.log(data)
+      if(data.code == 200){
+        _this.key =  data.key;
+        //验证用户
+        let userH5Id = window.localStorage.getItem(_this.key);
+        let shuju = {
+          id: userH5Id
+        };
+        this.idd = shuju.id;
+        // console.log(shuju);
+
+        if (!userH5Id) {
+          _this.$message.error("请先录入个人信息");
+          _this.$router.push("/useradd");
+        }else{
+          userApi.axiosuserfind(shuju).then(res => {
+            // console.log(res)
+            if (res.code == 200) {
+              // console.log(userH5Id);
+              // console.log(res.data);
+              _this.res = res;
+              _this.userData = res.data;
+              // console.log(res.data);
+              // this.$message.success("信息提交成功");
+            } else {
+              // this.$message.error("信息提交失败");
+            } 
+          });
+        }
+       
+         
+      }else{
+        this.$message.error("请联系管理员，程序需要重置");
       }
-    });
+    })
+
+    
+
+    
   },
   mounted() {
     // 初始化WebSocket
     this.initWebSocket();
 
     this.addToList();
+
+    //窗口关闭时 断开连接
+    let _this = this;
+    window.onbeforeunload = function() {
+      _this.websock.close();
+    };
   },
   methods: {
     //初始化  WebSocket
@@ -174,17 +203,38 @@ export default {
         return;
       }
       let restu = JSON.parse(data.data);
-
+      if (restu.type == "clear") {
+        this.clearLocalStorage();
+      }
       if (restu.type == "barrage") {
-        //监听 服务器的通知
-
         // console.log("data:", restu.type);
         let sjs = Math.floor(Math.random() * 10);
         let sjss = sjs > 7 ? sjs : 7;
+
+        //监听 服务器的通知
+        // if (restu.text == "开始卖酒") {
+        //   this.barrageList.push({
+        //     // id: "00",
+        //     avatar: txx,
+        //     msg:
+        //       restu.data[0].staffName +
+        //       "右边的第" +
+        //       utils.randomNum(1, 12) +
+        //       "位喝一杯！",
+        //     time: sjss,
+        //     type: MESSAGE_TYPE.NORMAL,
+        //     barrageStyle: _this.color[Math.ceil(Math.random() * 10)]
+        //   });
+        //   return;
+        // }
+        let mc = restu.data[0].staffName;
+        if(restu.data[0].FamilyPeople == 1){
+          mc = restu.data[0].staffName+"家属-"+restu.data[0].Familyname;
+        }
         this.barrageList.push({
           // id: "00",
           avatar: serverConfig.imgpath + restu.data[0].imgpath,
-          msg: restu.data[0].staffName + "：" + restu.text,
+          msg: mc + "：" + restu.text,
           time: sjss,
           type: MESSAGE_TYPE.NORMAL,
           barrageStyle: _this.color[Math.ceil(Math.random() * 10)]
@@ -193,7 +243,12 @@ export default {
     },
     //发弹幕
     barrageAdd() {
-      let textAll = this.text.substring(0, 10);
+      //  如果发送的东西是空的   发一段随机搞笑的
+      let sjNum = utils.randomNum(0, textArrNew.length - 1);
+      let textAll =
+        this.text.substring(0, 20) == ""
+          ? textArrNew[sjNum]
+          : this.text.substring(0, 20);
       //发送弹幕消息
       this.websocketsend({
         type: "barrage",
@@ -228,7 +283,7 @@ export default {
         //   barrageStyle: "red"
         // }
       ];
-      console.log(list[0].barrageStyle);
+      // console.log(list[0].barrageStyle);
       list.forEach(v => {
         this.barrageList.push({
           id: v.id,
@@ -239,6 +294,11 @@ export default {
           barrageStyle: v.barrageStyle
         });
       });
+    },
+    clearLocalStorage() {
+      localStorage.clear(); //删除本地储存中的数据
+      this.$router.push("/useradd");
+      location.reload(true); //重新加载页面
     }
   }
 };
@@ -326,6 +386,12 @@ export default {
   background: #f3f1f6;
   padding: 20px 10px;
   box-sizing: border-box;
+}
+.app .baberrage-item .baberrage-avatar {
+  width: 60px !important;
+  height: 60px !important;
+  left: -10px !important;
+  top: -10px !important;
 }
 .dmbg {
   // background: url();

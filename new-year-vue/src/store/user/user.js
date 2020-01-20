@@ -6,7 +6,7 @@ import {
 export default {
     //这里的state必须是JSON，是一个对象。
     state: {
-        count: '', //这里就是所有人员,
+        count: '', //这里就是所有在场人员,
         noPrizeData: [], //所有没有中过奖的人
         prizeData: {
             one: {},
@@ -29,6 +29,20 @@ export default {
                 // console.log(res)
                 if (res.code == 200) {
                     let data = res.data;
+                    context.commit('checkUser', data);
+                    // this.$message.success("信息提交成功");
+                } else {
+                    // this.$message.error("信息提交失败");
+                }
+            })
+        },
+        userFindScene(context, payload) {
+            userApi.userFindScene().then(res => {
+                // console.log(res.data)
+                // console.log(res)
+                if (res.code == 200) {
+                    let data = res.data;
+                    console.log(data)
                     context.commit('checkUser', data);
                     // this.$message.success("信息提交成功");
                 } else {

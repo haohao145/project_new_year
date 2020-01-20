@@ -74,6 +74,11 @@ export default {
   },
   mounted() {
     this.initWebSocket();
+    //窗口关闭时 断开连接
+    let _this = this;
+    window.onbeforeunload = function() {
+      _this.websock.close();
+    };
   },
   methods: {
     initWebSocket() {

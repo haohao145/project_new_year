@@ -1,33 +1,74 @@
 <template>
-  <div class="aaa bg" :class="{bgh:bg==1}" style="width: 100%;height: 100%;">
-    <h1 class="cwl" v-if="prizeOut == 1">已经抽完了a</h1>
-    <div id="result" class="result" v-show="prizeInterface == 1">
-      <div class="tx" v-for="(item,index) in prizeDatas" :key="index">
+  <div
+    class="aaa bg"
+    :class="{bgh:bg==1}"
+    style="width: 100%;height: 100%;"
+  >
+    <h1
+      class="cwl"
+      v-if="prizeOut == 1"
+    >所有奖项都已抽完</h1>
+    <div
+      id="result"
+      class="result"
+      v-show="prizeInterface == 1" 
+    >
+      <div
+        class="tx"
+        v-for="(item,index) in prizeDatas"
+        :key="index"
+      >
         <img :src="serverConfig.imgpath+item.imgpath" />
         <br />
-        {{item.staffName}}
+        {{item.FamilyPeople == 1?item.staffName+"家属："+item.Familyname:item.staffName+"-"+item.department}}
+        <!-- <br/> -->
+        <!-- {{item.}} -->
       </div>
     </div>
-    <div id="main" class="wall" :class="{mask:mask == 1}">
+    <div
+      v-if="onoff == 1"
+      class="djs"
+    >
+      <h1>{{onoffnum}}</h1>
+    </div>
+    <div
+      id="main"
+      class="wall"
+      :class="{mask:mask == 1}"
+    >
       <!-- <div class="result-btn">
                 <a href="./result.html" target="_blank">获奖名单</a>
       </div>-->
       <!-- <div>{{allData}}</div> -->
-      <canvas id="myCanvas" :width="width" :height="height"></canvas>
+      <canvas
+        id="myCanvas"
+        :width="width"
+        :height="height"
+      ></canvas>
     </div>
     <!-- <p>{{allData}}</p>
     <p>{{userData}}</p>-->
     <div id="myLi">
       <ul>
-        <li v-for="(item,index) in userData" class="colorf" :key="index">
-          <a href="#" :style="{color:item.color}">
+        <li
+          v-for="(item,index) in userData"
+          class="colorf"
+          :key="index"
+        >
+          <a
+            href="#"
+            :style="{color:item.color}"
+          >
             <img :src="serverConfig.imgpath+item.imgpath" />
             {{item.staffName}}
           </a>
         </li>
       </ul>
     </div>
-    <div id="tools" class="tools">
+    <div
+      id="tools"
+      class="tools"
+    >
       <!-- <button
         :key="index"
         v-for="(value,index) in btns"
@@ -41,8 +82,14 @@
         :class="{'button-secondary': !running,
                'button-success': running}"
       >{{running?'停!':'开始'}}</button>-->
-      <router-link class="gengduo" to="/prizelist">中奖名单</router-link>
-      <a class="gengduo" @click="reset">重置</a>
+      <router-link
+        class="gengduo"
+        to="/prizelist"
+      >中奖名单</router-link>
+      <a
+        class="gengduo"
+        @click="reset"
+      >重置</a>
       <!-- <button class="pure-button button-warning" @click="reset">重置</button> -->
     </div>
   </div>
@@ -83,7 +130,9 @@ export default {
       prizeOut: 0, //奖项抽完了  1  表示抽完了
       mask: 0,
       serverConfig: serverConfig,
-      bg: 0
+      bg: 0,
+      onoff: 0,
+      onoffnum: 5
     };
   },
   watch: {
@@ -184,6 +233,11 @@ export default {
     setTimeout(function() {
       document.getElementById("myLi").style.display = "none";
     }, 1000);
+
+    //窗口关闭时 断开连接
+    window.onbeforeunload = function() {
+      _this.websock.close();
+    };
   },
   methods: {
     //初始化  WebSocket
@@ -227,7 +281,7 @@ export default {
         this.selected = restu.number;
         //设置几等奖
         this.prizeNumber = restu.prizeclass;
-        this.toggle();
+        this.noOff();
       }
     },
 
@@ -237,7 +291,7 @@ export default {
     // 创建dome
     createHTML() {
       //  vuex  请求 所有用户数据
-      this.$store.dispatch("checkUser");
+      this.$store.dispatch("userFindScene");
       //打印请求到的数据
       // console.log(this.userData);
       let _this = this;
@@ -287,7 +341,23 @@ export default {
         location.reload(true); //重新加载页面
       }
     },
-
+    noOff() {
+      let _this = this;
+      if (!this.running) {
+        this.onoffnum = 5;
+        _this.onoff = 1;
+        let stt = setInterval(function() {
+          _this.onoffnum--;
+          if (_this.onoffnum == 0) {
+            _this.onoff = 0;
+            _this.toggle();
+            clearInterval(stt);
+          }
+        }, 1000);
+      } else {
+        _this.toggle();
+      }
+    },
     //开始或者停止抽奖
     toggle() {
       let _this = this;
@@ -310,6 +380,7 @@ export default {
         //显示中奖的内容
         _this.prizeInterface = 1;
         this.mask = 1;
+        //中奖信息
         _this.prizeDatas = rets;
         // $('#result').css('display', 'block').html('<span>' + ret.join('</span><span>') + '</span>');
 
@@ -322,6 +393,12 @@ export default {
           _this.mask = 1;
           // $('#main').addClass('mask');
         }, 100);
+
+        setTimeout(function() {
+          //关闭中奖信息
+          _this.prizeInterface = 0;
+          _this.mask = 0;
+        }, 60 * 1000);
       } else {
         //不显示遮罩
         this.prizeInterface = 0;
@@ -399,7 +476,7 @@ export default {
         // console.log(res);
         if (res.result == 200) {
           // let data = res.data;
-          this.$message.success("中奖信息已经储存到服务器1");
+          this.$message.success("中奖信息已经储存到服务器");
         } else {
           this.$message.error("中奖信息储存失败");
         }
@@ -661,6 +738,25 @@ img {
 .bgh {
   background: url("../../assets/img/systemImg/icon-wallh.jpg") no-repeat
     center/100%;
+}
+.djs {
+  width: 500px;
+  height: 300px;
+  background: rgba(13, 92, 245, 0.5);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  border-radius: 10px;
+
+  h1 {
+    line-height: 300px;
+    text-align: center;
+    color: #fff;
+    font-size: 100px;
+  }
 }
 /* ul li a{
     	font-size: 12px;

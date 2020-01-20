@@ -1,31 +1,44 @@
 <template>
   <div class="control">
-    <el-row :gutter="40" style="margin-bottom:40px">
-      <el-col :span="8">
+    <el-row>
+      <el-col :span="24">
         <a @click="prizeGo(3)">抽取三等奖</a>
       </el-col>
-      <el-col :span="8">
+    </el-row>
+    <el-row>
+      <el-col :span="24">
         <a @click="prizeGo(2)">抽取二等奖</a>
       </el-col>
-      <el-col :span="8">
+    </el-row>
+    <el-row>
+      <el-col :span="24">
         <a @click="prizeGo(1)">抽取一等奖</a>
       </el-col>
     </el-row>
-    <el-row :gutter="40" style="margin-bottom:40px">
-      <el-col :span="8">
-        <a @click="prizeGo(1)">加奖(每轮抽一个)</a>
+    <el-row>
+      <el-col :span="24">
+        <a @click="prizeGo(1)">加奖(一个)</a>
       </el-col>
-      <el-col :span="8">
+    </el-row>
+    <el-row>
+      <el-col :span="24">
         <a @click="toggeBg()">换背景</a>
       </el-col>
     </el-row>
-    <el-row :gutter="40">
+    <!-- <el-row :gutter="20">
       <el-col :span="24">
         <a @click="open">发弹幕</a>
       </el-col>
-      <!-- <el-col :span="12">
-        <a>清空弹幕</a>
-      </el-col>-->
+    </el-row>-->
+    <el-row>
+      <el-col :span="24">
+        <a @click="clear()">清空本地储存</a>
+      </el-col>
+    </el-row>
+    <el-row>
+      <el-col :span="24">
+        <a @click="clearServe()">清空服务器（慎用，所有数据将消失）</a>
+      </el-col>
     </el-row>
   </div>
 </template>
@@ -33,6 +46,7 @@
 <script>
 //获取 ws 的请求地址
 import serverConfig from "../../public/serverConfig.json";
+import { userApi } from "@/api/apiList";
 export default {
   data() {
     return {
@@ -56,6 +70,11 @@ export default {
   },
   mounted() {
     this.initWebSocket();
+    //窗口关闭时 断开连接
+    let _this = this;
+    window.onbeforeunload = function() {
+      _this.websock.close();
+    };
   },
   methods: {
     initWebSocket() {
@@ -102,37 +121,72 @@ export default {
       }
     },
     //发弹幕
-    open() {
-      this.$prompt("请输入弹幕内容", "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消"
-        // inputPattern: /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/,
-        // inputErrorMessage: "邮箱格式不正确"
-      })
-        .then(({ value }) => {
-          //最多输入6个字
-          let textAll = value.substring(0, 6);
-          //发送弹幕消息
-          this.websocketsend({
-            type: "barrage",
-            text: textAll
-          });
-          this.$message({
-            type: "success",
-            message: "弹幕发送成功，内容是: " + textAll
-          });
-        })
-        .catch(() => {
-          this.$message({
-            type: "info",
-            message: "取消发送"
-          });
-        });
-    },
+    // open() {
+    //   this.$prompt("请输入弹幕内容", "提示", {
+    //     confirmButtonText: "确定",
+    //     cancelButtonText: "取消"
+    //     // inputPattern: /[\w!#$%&'*+/=?^_`{|}~-]+(?:\.[\w!#$%&'*+/=?^_`{|}~-]+)*@(?:[\w](?:[\w-]*[\w])?\.)+[\w](?:[\w-]*[\w])?/,
+    //     // inputErrorMessage: "邮箱格式不正确"
+    //   })
+    //     .then(({ value }) => {
+    //       //最多输入6个字
+    //       let textAll = value.substring(0, 6);
+    //       //发送弹幕消息
+    //       this.websocketsend({
+    //         type: "barrage",
+    //         text: textAll
+    //       });
+    //       this.$message({
+    //         type: "success",
+    //         message: "弹幕发送成功，内容是: " + textAll
+    //       });
+    //     })
+    //     .catch(() => {
+    //       this.$message({
+    //         type: "info",
+    //         message: "取消发送"
+    //       });
+    //     });
+    // },
     toggeBg() {
       this.websocketsend({
         type: "bg"
       });
+    },
+    clear() {
+      if (confirm("请保证多次录入的设备在弹幕页！")) {
+        this.websocketsend({
+          type: "clear"
+          // text: textAll
+        });
+        // this.$router.push("/");
+        // location.reload(true); //重新加载页面
+      }
+    },
+    clearServeAll() {
+      try {
+        console.log(1);
+        userApi.delete().then(res => {
+          if (res.code == 200) {
+            // console.log(res);
+            this.$message.success("数据删除成功");
+          } else {
+            this.$message.error("数据删除失败或数据库本无数据");
+          }
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    clearServe() {
+      if (confirm("确定要清空数据库吗？所有历史数据将被清除！")) {
+        this.websocketsend({
+          type: "clear"
+        });
+        console.log(1);
+        this.clearServeAll();
+        //删除数据库
+      }
     }
   }
 };
@@ -146,7 +200,7 @@ export default {
   display: flex;
   flex-flow: column nowrap;
   justify-content: space-around;
-  padding: 0 20%;
+  padding: 0 10%;
   @include box-sizing();
 }
 

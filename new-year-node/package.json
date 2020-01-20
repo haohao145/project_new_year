@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "这node服务端是用来配合前台的测试项目搭建的接口的",
   "main": "app.js",
+  "private": true,
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -15,7 +16,7 @@
     "express-ws": "^4.0.0",
     "formidable": "^1.2.1",
     "mongoose": "^5.5.2",
-    "node-xlsx": "^0.14.1",
-    "socket.io": "^2.3.0"
+    "node-localstorage": "^2.1.5",
+    "request": "^2.88.0"
   }
 }
